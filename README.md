@@ -1,6 +1,18 @@
 ## About Mod
 
-A simple point-fire crosshair
+A mostly-static image-based crosshair with such features as: somewhat-intelligent hiding and... that's about it! For all the non-purists among us.
+
+Hey, it's better than a monitor crosshair or an overlay one!
+
+![it's a crosshair](Screenshots/crosshair.png)
+
+## Configuration
+
+You can adjust the crosshair image by dropping a PNG image named `custom_crosshair.png` inside of the `<spt-folder>\BepInEx\SimpleCrosshair\` folder. It will load that image instead of the default one.
+
+- **Crosshair Color**: Adjust the color and opacity of the crosshair
+- **Crosshair Size**: Adjust the size of the crosshair. Image will fit into the square bounds.
+- **Crosshair Offset**: Adjust the offset of the crosshair outside of the exact middle. Good for custom crosshairs where the middle of the image is not the aim point.
 
 ## Installation
 

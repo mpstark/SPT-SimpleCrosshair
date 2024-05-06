@@ -22,14 +22,14 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>$(TarkovManagedDir)Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="com.unity.multiplayer-hlapi.Runtime">
-      <HintPath>$(TarkovManagedDir)com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="Comfort">
       <HintPath>$(TarkovManagedDir)Comfort.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>$(TarkovManagedDir)Newtonsoft.Json.dll</HintPath>
+    <Reference Include="DOTween">
+      <HintPath>$(TarkovManagedDir)DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween.Modules">
+      <HintPath>$(TarkovManagedDir)DOTween.Modules.dll</HintPath>
     </Reference>
     <Reference Include="Sirenix.Serialization">
       <HintPath>$(TarkovManagedDir)Sirenix.Serialization.dll</HintPath>

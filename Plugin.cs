@@ -32,6 +32,7 @@ namespace SimpleCrosshair
             new GameWorldUnregisterPlayerPatch().Enable();
             new GesturesMenuShowPatch().Enable();
             new GesturesMenuClosePatch().Enable();
+            new MovementContextProcessStateEnterPatch().Enable();
         }
 
         /// <summary>

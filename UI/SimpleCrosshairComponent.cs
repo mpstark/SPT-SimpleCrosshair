@@ -115,8 +115,6 @@ namespace SimpleCrosshair
             // register events on player
             player.OnHandsControllerChanged += OnHandControllerChanged;
             player.OnSenseChanged += OnSenseChanged;
-            player.OnPlayerDead += OnPlayerDead;
-            player.MovementContext.OnStateChanged += OnMovementStateChanged;
             player.PossibleInteractionsChanged += PossibleInteractionsChanged;
 
             // we may have missed initial event, so call it now
@@ -133,8 +131,6 @@ namespace SimpleCrosshair
             // unregister events on player
             player.OnHandsControllerChanged -= OnHandControllerChanged;
             player.OnSenseChanged -= OnSenseChanged;
-            player.OnPlayerDead -= OnPlayerDead;
-            player.MovementContext.OnStateChanged -= OnMovementStateChanged;
             player.PossibleInteractionsChanged += PossibleInteractionsChanged;
 
             // unregister from hands controller if there is one
@@ -169,14 +165,9 @@ namespace SimpleCrosshair
             SetReasonToHide("sensing", sensingItem);
         }
 
-        private void OnPlayerDead(Player player, IPlayer lastAggressor, DamageInfo damageInfo, EBodyPart part)
+        internal void OnMovementStateChanged(EPlayerState state)
         {
-            SetReasonToHide("dead", true);
-        }
-
-        private void OnMovementStateChanged(EPlayerState previousState, EPlayerState nextState)
-        {
-            SetReasonToHide("movementState", PlayerStatesToHideWith.Contains(nextState));
+            SetReasonToHide("movementState", PlayerStatesToHideWith.Contains(state));
         }
 
         private void PossibleInteractionsChanged()

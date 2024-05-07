@@ -40,6 +40,7 @@ namespace SimpleCrosshair.Patches
             }
 
             Plugin.Instance.SimpleCrosshair?.OnUnregisterMainPlayer();
+            Plugin.Instance.DestroyCrosshair();
         }
     }
 }

@@ -71,6 +71,7 @@ namespace SimpleCrosshair
                 imagePath = CustomImagePath;
             }
 
+            // load crosshair texture from disk
             var texture = TextureUtils.LoadTexture2DFromPath(imagePath);
             _crosshairImage = gameObject.AddComponent<Image>();
             _crosshairImage.sprite = Sprite.Create(texture,
@@ -79,12 +80,11 @@ namespace SimpleCrosshair
             _crosshairImage.type = Image.Type.Simple;
 
             // we may have missed register player, so if a player exists, go ahead and call it
+            // TODO: investigate if this is needed or if the patch should be used instead
             if (GameUtils.Player != null)
             {
                 OnRegisterMainPlayer();
             }
-
-            _cachedCanvas = gameObject.GetComponentInParent<Canvas>();
 
             ReadConfig();
         }
@@ -190,6 +190,10 @@ namespace SimpleCrosshair
         {
             var player = GameUtils.Player;
 
+            _cachedPlayer = player;
+            _cachedCamera = Camera.main;
+            _cachedCanvas = gameObject.GetComponentInParent<Canvas>();
+
             // register events on player
             player.OnHandsControllerChanged += OnHandControllerChanged;
             player.OnSenseChanged += OnSenseChanged;
@@ -200,9 +204,6 @@ namespace SimpleCrosshair
 
             // clear all reasons to hide, since we're resetting the player
             _reasonsToHide.Clear();
-
-            _cachedPlayer = player;
-            _cachedCamera = Camera.main;
         }
 
         internal void OnUnregisterMainPlayer()
@@ -219,6 +220,7 @@ namespace SimpleCrosshair
 
             _cachedPlayer = null;
             _cachedCamera = null;
+            _cachedCanvas = null;
         }
 
         private void OnHandControllerChanged(Player.AbstractHandsController oldController,

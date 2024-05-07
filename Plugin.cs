@@ -38,7 +38,7 @@ namespace SimpleCrosshair
         /// <summary>
         /// Attach the crosshair to the battle ui screen
         /// </summary>
-        public void TryAttachToBattleUIScreen(BattleUIScreen screen)
+        internal void TryAttachToBattleUIScreen(BattleUIScreen screen)
         {
             // if the screen already has the component, don't add it
             if (screen.GetComponentInChildren<SimpleCrosshairComponent>() != null)
@@ -49,12 +49,19 @@ namespace SimpleCrosshair
             if (SimpleCrosshair != null)
             {
                 Log.LogWarning($"Attaching new SimpleCrosshairComponent, but one already existed? Maybe old reference.");
-                SimpleCrosshair.OnUnregisterMainPlayer();
-                Destroy(SimpleCrosshair);
-                SimpleCrosshair = null;
+                DestroyCrosshair();
             }
 
             SimpleCrosshair = SimpleCrosshairComponent.AttachToBattleUIScreen(screen);
+        }
+
+        /// <summary>
+        /// This destroys the current crosshair
+        /// </summary>
+        internal void DestroyCrosshair()
+        {
+            Destroy(SimpleCrosshair);
+            SimpleCrosshair = null;
         }
     }
 }

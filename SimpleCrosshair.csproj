@@ -43,6 +43,9 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(TarkovManagedDir)UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicModule">
+      <HintPath>$(TarkovManagedDir)UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>$(TarkovManagedDir)UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>

@@ -14,7 +14,6 @@ namespace SimpleCrosshair
 {
     public class SimpleCrosshairComponent : MonoBehaviour
     {
-        private const float TransitionTime = 0.15f;
         private readonly static string DefaultImagePath = Path.Combine(Plugin.Path, "crosshair.png");
         private readonly static string CustomImagePath = Path.Combine(Plugin.Path, "custom_crosshair.png");
         private readonly static HashSet<EPlayerState> PlayerStatesToHideWith = new HashSet<EPlayerState>()
@@ -33,6 +32,18 @@ namespace SimpleCrosshair
         private Image _crosshairImage;
         private bool _isVisible = true;
         private Dictionary<string, bool> _reasonsToHide = new Dictionary<string, bool>();
+
+        // config to be used later
+        private float _fadeInOutTime;
+        private bool _useDynamicPosition;
+        private float _dynamicPositionSmoothTime;
+        private float _dynamicPositionAimDistance;
+
+        // cached variables
+        private Player _cachedPlayer;
+        private Player.FirearmController _cachedFirearmController;
+        private Canvas _cachedCanvas;
+        private Camera _cachedCamera;
 
         public static SimpleCrosshairComponent AttachToBattleUIScreen(BattleUIScreen screen)
         {
@@ -60,6 +71,7 @@ namespace SimpleCrosshair
                 imagePath = CustomImagePath;
             }
 
+            // load crosshair texture from disk
             var texture = TextureUtils.LoadTexture2DFromPath(imagePath);
             _crosshairImage = gameObject.AddComponent<Image>();
             _crosshairImage.sprite = Sprite.Create(texture,
@@ -67,20 +79,43 @@ namespace SimpleCrosshair
                                                    new Vector2(texture.width / 2, texture.height / 2));
             _crosshairImage.type = Image.Type.Simple;
 
-            ReadConfig();
-
             // we may have missed register player, so if a player exists, go ahead and call it
+            // TODO: investigate if this is needed or if the patch should be used instead
             if (GameUtils.Player != null)
             {
                 OnRegisterMainPlayer();
             }
+
+            ReadConfig();
+        }
+
+        public void FixedUpdate()
+        {
+            if (!_useDynamicPosition || !_isVisible)
+            {
+                return;
+            }
+
+            CalculateDynamicAimPoint();
         }
 
         public void ReadConfig()
         {
-            gameObject.GetRectTransform().sizeDelta = Settings.CrosshairSize.Value * Vector2.one;
-            gameObject.GetRectTransform().anchoredPosition = Settings.CrosshairOffset.Value;
-            _crosshairImage.color = Settings.CrosshairColor.Value;
+            gameObject.GetRectTransform().sizeDelta = Settings.Size.Value * Vector2.one;
+            gameObject.GetRectTransform().anchoredPosition = Settings.Offset.Value;
+            _crosshairImage.color = Settings.Color.Value;
+            _fadeInOutTime = Settings.FadeInOutTime.Value;
+            _dynamicPositionSmoothTime = Settings.DynamicPositionSmoothTime.Value;
+            _dynamicPositionAimDistance = Settings.DynamicPositionAimDistance.Value;
+
+            if (_useDynamicPosition != Settings.UseDynamicPosition.Value)
+            {
+                _useDynamicPosition = Settings.UseDynamicPosition.Value;
+                if (!_useDynamicPosition)
+                {
+                    ResetToStaticAimPoint();
+                }
+            }
         }
 
         public void SetReasonToHide(string reason, bool shouldHide)
@@ -96,21 +131,68 @@ namespace SimpleCrosshair
                 return;
             }
 
-            var configColor = Settings.CrosshairColor.Value;
+            var configColor = Settings.Color.Value;
             var finalColor = new Color(configColor.r, configColor.g, configColor.b, visible ? configColor.a : 0);
 
             // tween fade the crosshair in/out
             DOTween.To(() => _crosshairImage.color,
                        color => _crosshairImage.color = color,
                        finalColor,
-                       TransitionTime);
+                       _fadeInOutTime);
 
             _isVisible = visible;
+        }
+
+        private void CalculateDynamicAimPoint()
+        {
+            if (_cachedPlayer == null)
+            {
+                return;
+            }
+
+            var rayBegin = _cachedFirearmController != null
+                ? _cachedFirearmController.CurrentFireport.position
+                : _cachedPlayer.CameraPosition.position;
+
+            var rayDirection = _cachedFirearmController != null
+                ? _cachedFirearmController.WeaponDirection
+                : _cachedPlayer.LookDirection;
+
+            // do raycast, if it hits, use that as aim point, if not, use end of ray
+            var ray = new Ray(rayBegin, rayDirection);
+            var rayEnd = rayBegin + rayDirection.normalized * _dynamicPositionAimDistance;
+			var didRayHit = Physics.Raycast(
+                ray, out RaycastHit rayHit, _dynamicPositionAimDistance, LayerMaskClass.HighPolyWithTerrainMask);
+
+            var worldAimPoint = didRayHit ? rayHit.point : rayEnd;
+            var screenAimPoint = GetCanvasScreenPosition(worldAimPoint);
+
+            // move the anchor position of the cursor to the aim point
+            _crosshairImage.GetRectTransform().DOAnchorPos(screenAimPoint, _dynamicPositionSmoothTime);
+        }
+
+        private void ResetToStaticAimPoint()
+        {
+            DOTween.Kill(_crosshairImage.GetRectTransform());
+            _crosshairImage.GetRectTransform().anchoredPosition = Vector2.zero;
+        }
+
+        private Vector2 GetCanvasScreenPosition(Vector3 worldPoint)
+        {
+            var canvasRect = _cachedCanvas.GetRectTransform();
+            var viewportPoint = _cachedCamera.WorldToViewportPoint(worldPoint);
+            return new Vector2(
+                (viewportPoint.x * canvasRect.sizeDelta.x) - (canvasRect.sizeDelta.x * 0.5f),
+                (viewportPoint.y * canvasRect.sizeDelta.y) - (canvasRect.sizeDelta.y * 0.5f));
         }
 
         internal void OnRegisterMainPlayer()
         {
             var player = GameUtils.Player;
+
+            _cachedPlayer = player;
+            _cachedCamera = Camera.main;
+            _cachedCanvas = gameObject.GetComponentInParent<Canvas>();
 
             // register events on player
             player.OnHandsControllerChanged += OnHandControllerChanged;
@@ -135,6 +217,10 @@ namespace SimpleCrosshair
 
             // unregister from hands controller if there is one
             OnHandControllerChanged(player.HandsController, null);
+
+            _cachedPlayer = null;
+            _cachedCamera = null;
+            _cachedCanvas = null;
         }
 
         private void OnHandControllerChanged(Player.AbstractHandsController oldController,
@@ -145,14 +231,20 @@ namespace SimpleCrosshair
                 oldController.OnAimingChanged -= OnAimingChanged;
             }
 
-            if (newController != null)
+            if (newController == null)
             {
-                newController.OnAimingChanged += OnAimingChanged;
-
-                // check if controller is one that we want to show a crosshair for
-                SetReasonToHide("handController", !HandControllersToShowWith.Any(c =>
-                    c.IsAssignableFrom(newController.GetType())));
+                return;
             }
+
+            newController.OnAimingChanged += OnAimingChanged;
+
+            // check if controller is one that we want to show a crosshair for
+            SetReasonToHide("handController", !HandControllersToShowWith.Any(c =>
+                c.IsAssignableFrom(newController.GetType())));
+
+            _cachedFirearmController = (newController is Player.FirearmController)
+                ? newController as Player.FirearmController
+                : null;
         }
 
         private void OnAimingChanged(bool isAiming)

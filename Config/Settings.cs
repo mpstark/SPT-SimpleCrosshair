@@ -11,17 +11,19 @@ namespace SimpleCrosshair.Config
         public static List<ConfigEntryBase> ConfigEntries = new List<ConfigEntryBase>();
 
         public const string GeneralSectionTitle = "General";
-        public static ConfigEntry<Color> CrosshairColor;
-        public static ConfigEntry<float> CrosshairSize;
-        public static ConfigEntry<Vector2> CrosshairOffset;
-        public static ConfigEntry<bool> CrosshairUseDynamicPosition;
-        public static ConfigEntry<float> CrosshairRaycastLength;
+        public static ConfigEntry<Color> Color;
+        public static ConfigEntry<float> Size;
+        public static ConfigEntry<Vector2> Offset;
+        public static ConfigEntry<float> FadeInOutTime;
+        public static ConfigEntry<bool> UseDynamicPosition;
+        public static ConfigEntry<float> DynamicPositionAimDistance;
+        public static ConfigEntry<float> DynamicPositionSmoothTime;
 
         public static void Init(ConfigFile Config)
         {
             Settings.Config = Config;
 
-            ConfigEntries.Add(CrosshairColor = Config.Bind(
+            ConfigEntries.Add(Color = Config.Bind(
                 GeneralSectionTitle,
                 "Crosshair Color",
                 new Color(0.9f, 0.9f, 0.9f, 0.75f),
@@ -30,7 +32,7 @@ namespace SimpleCrosshair.Config
                     null,
                     new ConfigurationManagerAttributes { })));
 
-            ConfigEntries.Add(CrosshairSize = Config.Bind(
+            ConfigEntries.Add(Size = Config.Bind(
                 GeneralSectionTitle,
                 "Crosshair Size",
                 30f,
@@ -39,7 +41,7 @@ namespace SimpleCrosshair.Config
                     new AcceptableValueRange<float>(15, 125),
                     new ConfigurationManagerAttributes { })));
 
-            ConfigEntries.Add(CrosshairOffset = Config.Bind(
+            ConfigEntries.Add(Offset = Config.Bind(
                 GeneralSectionTitle,
                 "Crosshair Offset",
                 new Vector2(0, 0),
@@ -48,7 +50,16 @@ namespace SimpleCrosshair.Config
                     null,
                     new ConfigurationManagerAttributes { })));
 
-            ConfigEntries.Add(CrosshairUseDynamicPosition = Config.Bind(
+            ConfigEntries.Add(FadeInOutTime = Config.Bind(
+                GeneralSectionTitle,
+                "Crosshair Fade Time",
+                0.10f,
+                new ConfigDescription(
+                    "How fast should the crosshair fade in and out on show/hide, 0 for instant",
+                    new AcceptableValueRange<float>(0f, 0.5f),
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(UseDynamicPosition = Config.Bind(
                 GeneralSectionTitle,
                 "Enable Dynamic Crosshair Position",
                 false,
@@ -56,16 +67,25 @@ namespace SimpleCrosshair.Config
                     "If the crosshair position should be dynamic to where the gun is pointing/player is looking",
                     null,
                     new ConfigurationManagerAttributes { })));
-            RecalcOrder();
 
-            ConfigEntries.Add(CrosshairRaycastLength = Config.Bind(
+            ConfigEntries.Add(DynamicPositionAimDistance = Config.Bind(
                 GeneralSectionTitle,
-                "Crosshair Raycast Length",
-                10f,
+                "Dynamic Crosshair Aim Distance",
+                15f,
                 new ConfigDescription(
-                    "The length of the raycast to move position",
-                    new AcceptableValueRange<float>(1, 100),
-                    new ConfigurationManagerAttributes { })));
+                    "How far away from the muzzle that obstacles should be found",
+                    new AcceptableValueRange<float>(1f, 50f),
+                    new ConfigurationManagerAttributes { IsAdvanced = true })));
+
+            ConfigEntries.Add(DynamicPositionSmoothTime = Config.Bind(
+                GeneralSectionTitle,
+                "Dynamic Crosshair Smooth Time",
+                0.10f,
+                new ConfigDescription(
+                    "How fast should crosshair react to changes, set to 0 for no smoothing",
+                    new AcceptableValueRange<float>(0f, 0.5f),
+                    new ConfigurationManagerAttributes { IsAdvanced = true })));
+
             RecalcOrder();
         }
 

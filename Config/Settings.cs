@@ -2,7 +2,7 @@
 using BepInEx.Configuration;
 using UnityEngine;
 
-// THIS IS HEAVILY BASED ON DRAKIAXYZ'S SPT-QUICKMOVETOCONTAINER
+// THIS IS HEAVILY BASED ON DRAKIAXYZ'S SPT-QuickMoveToContainer
 namespace SimpleCrosshair.Config
 {
     internal class Settings
@@ -14,6 +14,8 @@ namespace SimpleCrosshair.Config
         public static ConfigEntry<Color> CrosshairColor;
         public static ConfigEntry<float> CrosshairSize;
         public static ConfigEntry<Vector2> CrosshairOffset;
+        public static ConfigEntry<bool> CrosshairUseDynamicPosition;
+        public static ConfigEntry<float> CrosshairRaycastLength;
 
         public static void Init(ConfigFile Config)
         {
@@ -46,6 +48,24 @@ namespace SimpleCrosshair.Config
                     null,
                     new ConfigurationManagerAttributes { })));
 
+            ConfigEntries.Add(CrosshairUseDynamicPosition = Config.Bind(
+                GeneralSectionTitle,
+                "Enable Dynamic Crosshair Position",
+                false,
+                new ConfigDescription(
+                    "If the crosshair position should be dynamic to where the gun is pointing/player is looking",
+                    null,
+                    new ConfigurationManagerAttributes { })));
+            RecalcOrder();
+
+            ConfigEntries.Add(CrosshairRaycastLength = Config.Bind(
+                GeneralSectionTitle,
+                "Crosshair Raycast Length",
+                10f,
+                new ConfigDescription(
+                    "The length of the raycast to move position",
+                    new AcceptableValueRange<float>(1, 100),
+                    new ConfigurationManagerAttributes { })));
             RecalcOrder();
         }
 

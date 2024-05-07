@@ -6,6 +6,10 @@ Hey, it's better than a monitor crosshair or an overlay one!
 
 ![it's a crosshair](Screenshots/crosshair.png)
 
+*With optional (turned off by default) dynamic positioning!*
+
+![dynamic crosshair](Screenshots/dynamic_crosshair.gif)
+
 ## Configuration
 
 You can adjust the crosshair image by dropping a PNG image named `custom_crosshair.png` inside of the `<spt-folder>\BepInEx\SimpleCrosshair\` folder. It will load that image instead of the default one.
@@ -13,6 +17,8 @@ You can adjust the crosshair image by dropping a PNG image named `custom_crossha
 - **Crosshair Color**: Adjust the color and opacity of the crosshair
 - **Crosshair Size**: Adjust the size of the crosshair. Image will fit into the square bounds.
 - **Crosshair Offset**: Adjust the offset of the crosshair outside of the exact middle. Good for custom crosshairs where the middle of the image is not the aim point.
+- **Crosshair Fade Time**: Adjust the fade in/out time on show/hide
+- **Enable Dynamic Crosshair Position**: Instead of just being a static image in the direct middle, dynamically reposition with weapon facing
 
 ## Installation
 

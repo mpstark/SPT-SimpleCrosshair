@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BepInEx.Configuration;
 using DG.Tweening;
 using EFT;
 using EFT.UI;
@@ -12,6 +13,11 @@ using UnityEngine.UI;
 
 namespace SimpleCrosshair
 {
+    public enum EKeybindBehavior
+    {
+        DoNothing, PressToggles, ShowWhileHolding
+    };
+
     public class SimpleCrosshairComponent : MonoBehaviour
     {
         private readonly static string DefaultImagePath = Path.Combine(Plugin.Path, "crosshair.png");
@@ -33,11 +39,19 @@ namespace SimpleCrosshair
         private bool _isVisible = true;
         private Dictionary<string, bool> _reasonsToHide = new Dictionary<string, bool>();
 
-        // config to be used later
+        // general config
+        private Vector2 _offset;
         private float _fadeInOutTime;
+        private Color _color;
+
+        // dynamic positioning config
         private bool _useDynamicPosition;
         private float _dynamicPositionSmoothTime;
         private float _dynamicPositionAimDistance;
+
+        // keybind config
+        private KeyboardShortcut _keyboardShortcut;
+        private EKeybindBehavior _keybindBehavior;
 
         // cached variables
         private Player _cachedPlayer;
@@ -89,8 +103,37 @@ namespace SimpleCrosshair
             ReadConfig();
         }
 
+        public void Update()
+        {
+            // handle keyboard shortcuts
+            if (_keybindBehavior == EKeybindBehavior.DoNothing || _keyboardShortcut.MainKey == KeyCode.None)
+            {
+                return;
+            }
+
+            switch (_keybindBehavior)
+            {
+                case EKeybindBehavior.PressToggles:
+                    if (_keyboardShortcut.IsDown())
+                    {
+                        SetReasonToHide("disabled", !_reasonsToHide["disabled"]);
+                    }
+                    break;
+                case EKeybindBehavior.ShowWhileHolding:
+                    var isPressed = _keyboardShortcut.IsPressed();
+                    if (isPressed == _reasonsToHide["holdKeybind"])
+                    {
+                        SetReasonToHide("holdKeybind", !isPressed);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
         public void FixedUpdate()
         {
+            // handle dynamic position updates
             if (!_useDynamicPosition || !_isVisible)
             {
                 return;
@@ -101,21 +144,31 @@ namespace SimpleCrosshair
 
         public void ReadConfig()
         {
-            gameObject.GetRectTransform().sizeDelta = Settings.Size.Value * Vector2.one;
-            gameObject.GetRectTransform().anchoredPosition = Settings.Offset.Value;
-            _crosshairImage.color = Settings.Color.Value;
+            // general
+            _color = Settings.Color.Value;
+            _offset = new Vector2(Settings.OffsetX.Value, Settings.OffsetY.Value);
             _fadeInOutTime = Settings.FadeInOutTime.Value;
+            gameObject.GetRectTransform().sizeDelta = Settings.Size.Value * Vector2.one;
+
+            // reset color
+            _crosshairImage.color = _color;
+
+            // reset to static aim regardless, dynamic aim will update on fixed update
+            ResetToStaticAimPoint();
+
+            // dynamic positioning
+            _useDynamicPosition = Settings.UseDynamicPosition.Value;
             _dynamicPositionSmoothTime = Settings.DynamicPositionSmoothTime.Value;
             _dynamicPositionAimDistance = Settings.DynamicPositionAimDistance.Value;
 
-            if (_useDynamicPosition != Settings.UseDynamicPosition.Value)
-            {
-                _useDynamicPosition = Settings.UseDynamicPosition.Value;
-                if (!_useDynamicPosition)
-                {
-                    ResetToStaticAimPoint();
-                }
-            }
+            // keybind shortcuts
+            _keybindBehavior = Settings.KeybindBehavior.Value;
+            _keyboardShortcut = Settings.KeyboardShortcut.Value;
+
+            // force update
+            _reasonsToHide["disabled"] = !Settings.Show.Value;
+            _reasonsToHide["holdKeybind"] = _keybindBehavior == EKeybindBehavior.ShowWhileHolding;
+            SetVisibility(_isVisible, true);
         }
 
         public void SetReasonToHide(string reason, bool shouldHide)
@@ -124,22 +177,16 @@ namespace SimpleCrosshair
             SetVisibility(!_reasonsToHide.Any((pair) => pair.Value));
         }
 
-        private void SetVisibility(bool visible)
+        private void SetVisibility(bool visible, bool force = false)
         {
-            if (_isVisible == visible)
+            if (_isVisible == visible && !force)
             {
                 return;
             }
 
-            var configColor = Settings.Color.Value;
-            var finalColor = new Color(configColor.r, configColor.g, configColor.b, visible ? configColor.a : 0);
-
             // tween fade the crosshair in/out
-            DOTween.To(() => _crosshairImage.color,
-                       color => _crosshairImage.color = color,
-                       finalColor,
-                       _fadeInOutTime);
-
+            var toColor = new Color(_color.r, _color.g, _color.b, visible ? _color.a : 0);
+            _crosshairImage.TweenColor(toColor, _fadeInOutTime);
             _isVisible = visible;
         }
 
@@ -168,13 +215,13 @@ namespace SimpleCrosshair
             var screenAimPoint = GetCanvasScreenPosition(worldAimPoint);
 
             // move the anchor position of the cursor to the aim point
-            _crosshairImage.GetRectTransform().DOAnchorPos(screenAimPoint, _dynamicPositionSmoothTime);
+            _crosshairImage.GetRectTransform().DOAnchorPos(screenAimPoint + _offset, _dynamicPositionSmoothTime);
         }
 
         private void ResetToStaticAimPoint()
         {
             DOTween.Kill(_crosshairImage.GetRectTransform());
-            _crosshairImage.GetRectTransform().anchoredPosition = Vector2.zero;
+            _crosshairImage.GetRectTransform().anchoredPosition = _offset;
         }
 
         private Vector2 GetCanvasScreenPosition(Vector3 worldPoint)
@@ -204,6 +251,8 @@ namespace SimpleCrosshair
 
             // clear all reasons to hide, since we're resetting the player
             _reasonsToHide.Clear();
+
+            ReadConfig();
         }
 
         internal void OnUnregisterMainPlayer()
@@ -217,10 +266,6 @@ namespace SimpleCrosshair
 
             // unregister from hands controller if there is one
             OnHandControllerChanged(player.HandsController, null);
-
-            _cachedPlayer = null;
-            _cachedCamera = null;
-            _cachedCanvas = null;
         }
 
         private void OnHandControllerChanged(Player.AbstractHandsController oldController,

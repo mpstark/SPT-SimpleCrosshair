@@ -14,11 +14,16 @@ Hey, it's better than a monitor crosshair or an overlay one!
 
 You can adjust the crosshair image by dropping a PNG image named `custom_crosshair.png` inside of the `<spt-folder>\BepInEx\SimpleCrosshair\` folder. It will load that image instead of the default one.
 
+- **Show Crosshair**: If the crosshair should be shown
 - **Crosshair Color**: Adjust the color and opacity of the crosshair
 - **Crosshair Size**: Adjust the size of the crosshair. Image will fit into the square bounds.
-- **Crosshair Offset**: Adjust the offset of the crosshair outside of the exact middle. Good for custom crosshairs where the middle of the image is not the aim point.
+- **Crosshair Offset**: Adjust the offset of the crosshair outside of the exact middle. Good for a custom crosshair where the middle of the image is not the aim point.
 - **Crosshair Fade Time**: Adjust the fade in/out time on show/hide
 - **Enable Dynamic Crosshair Position**: Instead of just being a static image in the direct middle, dynamically reposition with weapon facing
+- **Keyboard Shortcut**: A keyboard shortcut to press
+- **Shortcut Behavior**: What to do when the keyboard shortcut button is pressed
+    - **Press Toggles**: Shows and hides the crosshair, taking the "Show Crosshair" option as an initial value
+    - **Show While Holding**: Shows the crosshair while the shortcut button is held down. A little wonky right now.
 
 ## Installation
 

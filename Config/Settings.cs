@@ -10,18 +10,35 @@ namespace SimpleCrosshair.Config
         public static ConfigFile Config;
         public static List<ConfigEntryBase> ConfigEntries = new List<ConfigEntryBase>();
 
-        public const string GeneralSectionTitle = "General";
+        public const string GeneralSectionTitle = "1. General";
+        public static ConfigEntry<bool> Show;
         public static ConfigEntry<Color> Color;
         public static ConfigEntry<float> Size;
-        public static ConfigEntry<Vector2> Offset;
         public static ConfigEntry<float> FadeInOutTime;
+        public static ConfigEntry<float> OffsetX;
+        public static ConfigEntry<float> OffsetY;
+
+        public const string DynamicPositionTitle = "2. Dynamic Positioning";
         public static ConfigEntry<bool> UseDynamicPosition;
         public static ConfigEntry<float> DynamicPositionAimDistance;
         public static ConfigEntry<float> DynamicPositionSmoothTime;
 
+        public const string KeybindTitle = "3. Keybinds";
+        public static ConfigEntry<KeyboardShortcut> KeyboardShortcut;
+        public static ConfigEntry<EKeybindBehavior> KeybindBehavior;
+
         public static void Init(ConfigFile Config)
         {
             Settings.Config = Config;
+
+            ConfigEntries.Add(Show = Config.Bind(
+                GeneralSectionTitle,
+                "Show Crosshair",
+                true,
+                new ConfigDescription(
+                    "If the crosshair should be displayed on raid load, can still be toggled on by Toggle keybind",
+                    null,
+                    new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(Color = Config.Bind(
                 GeneralSectionTitle,
@@ -41,15 +58,6 @@ namespace SimpleCrosshair.Config
                     new AcceptableValueRange<float>(15, 125),
                     new ConfigurationManagerAttributes { })));
 
-            ConfigEntries.Add(Offset = Config.Bind(
-                GeneralSectionTitle,
-                "Crosshair Offset",
-                new Vector2(0, 0),
-                new ConfigDescription(
-                    "The X and Y offset of the crosshair, if you want to move the crosshair outside of the middle",
-                    null,
-                    new ConfigurationManagerAttributes { })));
-
             ConfigEntries.Add(FadeInOutTime = Config.Bind(
                 GeneralSectionTitle,
                 "Crosshair Fade Time",
@@ -59,8 +67,26 @@ namespace SimpleCrosshair.Config
                     new AcceptableValueRange<float>(0f, 0.5f),
                     new ConfigurationManagerAttributes { })));
 
-            ConfigEntries.Add(UseDynamicPosition = Config.Bind(
+            ConfigEntries.Add(OffsetX = Config.Bind(
                 GeneralSectionTitle,
+                "Crosshair X Offset",
+                0f,
+                new ConfigDescription(
+                    "The X offset of the crosshair, if you want to move the crosshair outside of the middle. - left right +",
+                    new AcceptableValueRange<float>(-100, 100),
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(OffsetY = Config.Bind(
+                GeneralSectionTitle,
+                "Crosshair Y Offset",
+                0f,
+                new ConfigDescription(
+                    "The Y offset of the crosshair, if you want to move the crosshair outside of the middle. - down up +",
+                    new AcceptableValueRange<float>(-100, 100),
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(UseDynamicPosition = Config.Bind(
+                DynamicPositionTitle,
                 "Enable Dynamic Crosshair Position",
                 false,
                 new ConfigDescription(
@@ -69,7 +95,7 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(DynamicPositionAimDistance = Config.Bind(
-                GeneralSectionTitle,
+                DynamicPositionTitle,
                 "Dynamic Crosshair Aim Distance",
                 15f,
                 new ConfigDescription(
@@ -78,13 +104,31 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { IsAdvanced = true })));
 
             ConfigEntries.Add(DynamicPositionSmoothTime = Config.Bind(
-                GeneralSectionTitle,
+                DynamicPositionTitle,
                 "Dynamic Crosshair Smooth Time",
                 0.10f,
                 new ConfigDescription(
                     "How fast should crosshair react to changes, set to 0 for no smoothing",
                     new AcceptableValueRange<float>(0f, 0.5f),
                     new ConfigurationManagerAttributes { IsAdvanced = true })));
+
+            ConfigEntries.Add(KeyboardShortcut = Config.Bind(
+                KeybindTitle,
+                "Keyboard Shortcut",
+                new KeyboardShortcut(KeyCode.None),
+                new ConfigDescription(
+                    "The keyboard shortcut to use for the following options",
+                    null,
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(KeybindBehavior = Config.Bind(
+                KeybindTitle,
+                "Shortcut Behavior",
+                EKeybindBehavior.PressToggles,
+                new ConfigDescription(
+                    "What the keybind should do when pressed",
+                    null,
+                    new ConfigurationManagerAttributes { })));
 
             RecalcOrder();
         }

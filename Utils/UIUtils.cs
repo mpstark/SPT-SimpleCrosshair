@@ -1,4 +1,6 @@
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SimpleCrosshair.Utils
 {
@@ -19,6 +21,11 @@ namespace SimpleCrosshair.Utils
             gameObject.transform.localPosition = Vector3.zero;
             gameObject.transform.localRotation = Quaternion.identity;
 		    gameObject.transform.localScale = Vector3.one;
+        }
+
+        public static Tween TweenColor(this Image image, Color to, float duration)
+        {
+            return DOTween.To(() => image.color, c => image.color = c, to, duration);
         }
     }
 }

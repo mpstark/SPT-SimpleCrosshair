@@ -129,8 +129,8 @@ namespace SimpleCrosshair.Config
                 300f,
                 new ConfigDescription(
                     "The center radius by which to affect with the above behavior." +
-                    " Try 300-ish with Hide Inside for only showing if firing forward or 100-ish" +
-                    " with Hide Outside for only showing if obstacle",
+                    " Try 300-ish with Hide Outside for only showing if firing forward " +
+                    " or 100-ish with Hide Inside for only showing if obstacle",
                     new AcceptableValueRange<float>(75f, 500f),
                     new ConfigurationManagerAttributes { })));
 

@@ -21,7 +21,6 @@ namespace SimpleCrosshair
     public class SimpleCrosshairComponent : MonoBehaviour
     {
         private readonly static string DefaultImagePath = Path.Combine(Plugin.Path, "crosshair.png");
-        private readonly static string CustomImagePath = Path.Combine(Plugin.Path, "custom_crosshair.png");
         private readonly static HashSet<EPlayerState> PlayerStatesToHideWith = new HashSet<EPlayerState>()
         {
             EPlayerState.ProneMove,
@@ -53,6 +52,10 @@ namespace SimpleCrosshair
         private KeyboardShortcut _keyboardShortcut;
         private EKeybindBehavior _keybindBehavior;
 
+        // crosshair images
+        private string _currentImage;
+        private Dictionary<string, Sprite> _sprites = new Dictionary<string, Sprite>();
+
         // cached variables
         private Player _cachedPlayer;
         private Player.FirearmController _cachedFirearmController;
@@ -78,19 +81,8 @@ namespace SimpleCrosshair
 
         private void Awake()
         {
-            // if have custom crosshair image, load that one
-            var imagePath = DefaultImagePath;
-            if (File.Exists(CustomImagePath))
-            {
-                imagePath = CustomImagePath;
-            }
-
-            // load crosshair texture from disk
-            var texture = TextureUtils.LoadTexture2DFromPath(imagePath);
+            // create our image component that will hold the crosshair loaded from config
             _crosshairImage = gameObject.AddComponent<Image>();
-            _crosshairImage.sprite = Sprite.Create(texture,
-                                                   new Rect(0f, 0f, texture.width, texture.height),
-                                                   new Vector2(texture.width / 2, texture.height / 2));
             _crosshairImage.type = Image.Type.Simple;
 
             // we may have missed register player, so if a player exists, go ahead and call it
@@ -101,6 +93,15 @@ namespace SimpleCrosshair
             }
 
             ReadConfig();
+        }
+
+        private Sprite LoadSprite(string texturePath)
+        {
+            var texture = TextureUtils.LoadTexture2DFromPath(texturePath);
+            var sprite = Sprite.Create(texture,
+                                       new Rect(0f, 0f, texture.width, texture.height),
+                                       new Vector2(texture.width / 2, texture.height / 2));
+            return sprite;
         }
 
         public void Update()
@@ -164,6 +165,23 @@ namespace SimpleCrosshair
             // keybind shortcuts
             _keybindBehavior = Settings.KeybindBehavior.Value;
             _keyboardShortcut = Settings.KeyboardShortcut.Value;
+
+            // load crosshair image from config if needed
+            var imageName = Settings.ImageFileName.Value;
+            var path = Path.Combine(Plugin.Path, imageName);
+
+            // load sprite from path if not loaded before
+            if (!_sprites.ContainsKey(path) && File.Exists(path))
+            {
+                _sprites[imageName] = LoadSprite(path);
+            }
+
+            // load sprite if not currently or if last loaded isn't this one
+            if (_sprites.ContainsKey(imageName) && _currentImage != imageName)
+            {
+                _crosshairImage.sprite = _sprites[imageName];
+                _currentImage = imageName;
+            }
 
             // force update
             _reasonsToHide["disabled"] = !Settings.Show.Value;

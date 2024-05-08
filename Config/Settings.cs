@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using BepInEx.Configuration;
 using UnityEngine;
 
@@ -10,7 +12,8 @@ namespace SimpleCrosshair.Config
         public static ConfigFile Config;
         public static List<ConfigEntryBase> ConfigEntries = new List<ConfigEntryBase>();
 
-        public const string GeneralSectionTitle = "1. General";
+        public const string GeneralTitle = "1. General";
+        public static ConfigEntry<string> ImageFileName;
         public static ConfigEntry<bool> Show;
         public static ConfigEntry<Color> Color;
         public static ConfigEntry<float> Size;
@@ -31,8 +34,23 @@ namespace SimpleCrosshair.Config
         {
             Settings.Config = Config;
 
+            // get all png images in directory
+            var customFiles = Directory.EnumerateFiles(Plugin.Path, "*.*", SearchOption.AllDirectories)
+                .Where(p => "png" == Path.GetExtension(p).TrimStart('.').ToLowerInvariant())
+                .Select(p => Path.GetFileName(p))
+                .ToArray();
+
+            ConfigEntries.Add(ImageFileName = Config.Bind(
+                GeneralTitle,
+                "Crosshair Image",
+                "crosshair.png",
+                new ConfigDescription(
+                    "The file name of a custom crosshair located in \\BepInEx\\plugins\\",
+                    new AcceptableValueList<string>(customFiles),
+                    new ConfigurationManagerAttributes { })));
+
             ConfigEntries.Add(Show = Config.Bind(
-                GeneralSectionTitle,
+                GeneralTitle,
                 "Show Crosshair",
                 true,
                 new ConfigDescription(
@@ -41,7 +59,7 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(Color = Config.Bind(
-                GeneralSectionTitle,
+                GeneralTitle,
                 "Crosshair Color",
                 new Color(0.9f, 0.9f, 0.9f, 0.75f),
                 new ConfigDescription(
@@ -50,7 +68,7 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(Size = Config.Bind(
-                GeneralSectionTitle,
+                GeneralTitle,
                 "Crosshair Size",
                 30f,
                 new ConfigDescription(
@@ -59,7 +77,7 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(FadeInOutTime = Config.Bind(
-                GeneralSectionTitle,
+                GeneralTitle,
                 "Crosshair Fade Time",
                 0.10f,
                 new ConfigDescription(
@@ -68,7 +86,7 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(OffsetX = Config.Bind(
-                GeneralSectionTitle,
+                GeneralTitle,
                 "Crosshair X Offset",
                 0f,
                 new ConfigDescription(
@@ -77,7 +95,7 @@ namespace SimpleCrosshair.Config
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(OffsetY = Config.Bind(
-                GeneralSectionTitle,
+                GeneralTitle,
                 "Crosshair Y Offset",
                 0f,
                 new ConfigDescription(

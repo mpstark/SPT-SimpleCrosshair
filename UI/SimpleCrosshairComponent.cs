@@ -18,6 +18,11 @@ namespace SimpleCrosshair
         DoNothing, PressToggles, ShowWhileHolding
     };
 
+    public enum ECenterRadiusBehavior
+    {
+        DoNothing, HideInside, HideOutside
+    };
+
     public class SimpleCrosshairComponent : MonoBehaviour
     {
         private readonly static string DefaultImagePath = Path.Combine(Plugin.Path, "crosshair.png");
@@ -35,7 +40,7 @@ namespace SimpleCrosshair
         };
 
         private Image _crosshairImage;
-        private bool _isVisible = true;
+        private bool _visible = true;
         private bool _laggingVisible = true;
         private Dictionary<string, bool> _reasonsToHide = new Dictionary<string, bool>();
 
@@ -48,6 +53,8 @@ namespace SimpleCrosshair
         private bool _useDynamicPosition;
         private float _dynamicPositionSmoothTime;
         private float _dynamicPositionAimDistance;
+        private ECenterRadiusBehavior _centerRadiusBehavior;
+        private float _centerRadius;
 
         // keybind config
         private KeyboardShortcut _keyboardShortcut;
@@ -136,7 +143,7 @@ namespace SimpleCrosshair
         public void FixedUpdate()
         {
             // handle dynamic position updates
-            if (!_useDynamicPosition || (!_isVisible && !_laggingVisible))
+            if (!_useDynamicPosition)
             {
                 return;
             }
@@ -162,6 +169,8 @@ namespace SimpleCrosshair
             _useDynamicPosition = Settings.UseDynamicPosition.Value;
             _dynamicPositionSmoothTime = Settings.DynamicPositionSmoothTime.Value;
             _dynamicPositionAimDistance = Settings.DynamicPositionAimDistance.Value;
+            _centerRadius = Settings.CenterRadius.Value;
+            _centerRadiusBehavior = Settings.CenterRadiusBehavior.Value;
 
             // keybind shortcuts
             _keybindBehavior = Settings.KeybindBehavior.Value;
@@ -184,10 +193,11 @@ namespace SimpleCrosshair
                 _currentImage = imageName;
             }
 
-            // force update
+            // set initial reasons to hide and force visibility update
             _reasonsToHide["disabled"] = !Settings.Show.Value;
             _reasonsToHide["holdKeybind"] = _keybindBehavior == EKeybindBehavior.ShowWhileHolding;
-            SetVisibility(_isVisible, force: true);
+            _reasonsToHide["centerRadius"] = false;
+            SetVisibility(_visible, force: true);
         }
 
         public void SetReasonToHide(string reason, bool shouldHide)
@@ -196,32 +206,26 @@ namespace SimpleCrosshair
             SetVisibility(!_reasonsToHide.Any((pair) => pair.Value));
         }
 
-        private void SetVisibility(bool visible, bool shouldTween = true, bool force = false)
+        private void SetVisibility(bool newVisible, bool shouldTween = true, bool force = false)
         {
-            if (_isVisible == visible && !force)
+            if (_visible == newVisible && !force)
             {
                 return;
             }
 
-            var toColor = new Color(_color.r, _color.g, _color.b, visible ? _color.a : 0);
+            var toColor = new Color(_color.r, _color.g, _color.b, newVisible ? _color.a : 0);
             if (shouldTween)
             {
                 // tween fade the crosshair in/out
-                _crosshairImage.TweenColor(toColor, _fadeInOutTime).OnComplete(() => _laggingVisible = visible);
+                _crosshairImage.TweenColor(toColor, _fadeInOutTime).OnComplete(() => _laggingVisible = newVisible);
             }
             else
             {
                 _crosshairImage.color = toColor;
-                _laggingVisible = visible;
+                _laggingVisible = newVisible;
             }
 
-            _isVisible = visible;
-
-            // immediately calculate dynamic position with no tween
-            if (_isVisible && _useDynamicPosition)
-            {
-                CalculateDynamicAimPoint(shouldTween: false);
-            }
+            _visible = newVisible;
         }
 
         private void CalculateDynamicAimPoint(bool shouldTween = true)
@@ -249,13 +253,39 @@ namespace SimpleCrosshair
             var screenAimPoint = GetCanvasScreenPosition(worldAimPoint);
 
             // move the anchor position of the cursor to the aim point
-            if (shouldTween)
+            // check visibility status before tweening so that if the player can't see it, it doesn't tween
+            if (shouldTween && (_visible || _laggingVisible))
             {
                 _crosshairImage.GetRectTransform().DOAnchorPos(screenAimPoint + _offset, _dynamicPositionSmoothTime);
             }
             else
             {
                 _crosshairImage.GetRectTransform().anchoredPosition = screenAimPoint + _offset;
+            }
+
+            // lastly, do center radius handling
+            if (_centerRadiusBehavior == ECenterRadiusBehavior.DoNothing)
+            {
+                return;
+            }
+
+            var shouldHide = false;
+            var currentRadius = screenAimPoint.magnitude;
+            if (_centerRadiusBehavior == ECenterRadiusBehavior.HideInside &&
+                currentRadius < _centerRadius)
+            {
+                shouldHide = true;
+            }
+            else if(_centerRadiusBehavior == ECenterRadiusBehavior.HideOutside &&
+                    currentRadius > _centerRadius)
+            {
+                shouldHide = true;
+            }
+
+            // only call if different than before, since we don't want to spam it, since called on fixed update
+            if (shouldHide != _reasonsToHide["centerRadius"])
+            {
+                SetReasonToHide("centerRadius", shouldHide);
             }
         }
 

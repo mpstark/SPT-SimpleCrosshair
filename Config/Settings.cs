@@ -23,6 +23,8 @@ namespace SimpleCrosshair.Config
 
         public const string DynamicPositionTitle = "2. Dynamic Positioning";
         public static ConfigEntry<bool> UseDynamicPosition;
+        public static ConfigEntry<ECenterRadiusBehavior> CenterRadiusBehavior;
+        public static ConfigEntry<float> CenterRadius;
         public static ConfigEntry<float> DynamicPositionAimDistance;
         public static ConfigEntry<float> DynamicPositionSmoothTime;
 
@@ -110,6 +112,26 @@ namespace SimpleCrosshair.Config
                 new ConfigDescription(
                     "If the crosshair position should be dynamic to where the gun is pointing/player is looking",
                     null,
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(CenterRadiusBehavior = Config.Bind(
+                DynamicPositionTitle,
+                "Center Radius Behavior",
+                ECenterRadiusBehavior.DoNothing,
+                new ConfigDescription(
+                    "How the dynamic position should handle crosshair position outside of the specified center radius",
+                    null,
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(CenterRadius = Config.Bind(
+                DynamicPositionTitle,
+                "Center Radius",
+                300f,
+                new ConfigDescription(
+                    "The center radius by which to affect with the above behavior." +
+                    " Try 300-ish with Hide Inside for only showing if firing forward or 100-ish" +
+                    " with Hide Outside for only showing if obstacle",
+                    new AcceptableValueRange<float>(75f, 500f),
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(DynamicPositionAimDistance = Config.Bind(

@@ -12,8 +12,6 @@ Hey, it's better than a monitor crosshair or an overlay one!
 
 ## Configuration
 
-You can adjust the crosshair image by dropping a PNG image named `custom_crosshair.png` inside of the `<spt-folder>\BepInEx\SimpleCrosshair\` folder. It will load that image instead of the default one.
-
 ### General
 
 - **Crosshair Image**: The image to load out of the plugin directory, lists all found .png files on game launch

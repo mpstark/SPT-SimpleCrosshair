@@ -198,6 +198,11 @@ namespace SimpleCrosshair
             _reasonsToHide["holdKeybind"] = _keybindBehavior == EKeybindBehavior.ShowWhileHolding;
             _reasonsToHide["centerRadius"] = false;
             SetVisibility(_visible, force: true);
+
+            if (_useDynamicPosition)
+            {
+                CalculateDynamicAimPoint(false);
+            }
         }
 
         public void SetReasonToHide(string reason, bool shouldHide)

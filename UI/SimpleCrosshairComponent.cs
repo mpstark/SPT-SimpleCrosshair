@@ -120,7 +120,7 @@ namespace SimpleCrosshair
                     }
                     break;
                 case EKeybindBehavior.ShowWhileHolding:
-                    var isPressed = _keyboardShortcut.IsPressed();
+                    var isPressed = _keyboardShortcut.BetterIsPressed();
                     if (isPressed == _reasonsToHide["holdKeybind"])
                     {
                         SetReasonToHide("holdKeybind", !isPressed);

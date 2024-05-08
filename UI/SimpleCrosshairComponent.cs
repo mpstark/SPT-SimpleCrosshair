@@ -36,6 +36,7 @@ namespace SimpleCrosshair
 
         private Image _crosshairImage;
         private bool _isVisible = true;
+        private bool _laggingVisible = true;
         private Dictionary<string, bool> _reasonsToHide = new Dictionary<string, bool>();
 
         // general config
@@ -135,7 +136,7 @@ namespace SimpleCrosshair
         public void FixedUpdate()
         {
             // handle dynamic position updates
-            if (!_useDynamicPosition || !_isVisible)
+            if (!_useDynamicPosition || (!_isVisible && !_laggingVisible))
             {
                 return;
             }
@@ -186,7 +187,7 @@ namespace SimpleCrosshair
             // force update
             _reasonsToHide["disabled"] = !Settings.Show.Value;
             _reasonsToHide["holdKeybind"] = _keybindBehavior == EKeybindBehavior.ShowWhileHolding;
-            SetVisibility(_isVisible, true);
+            SetVisibility(_isVisible, force: true);
         }
 
         public void SetReasonToHide(string reason, bool shouldHide)
@@ -195,20 +196,35 @@ namespace SimpleCrosshair
             SetVisibility(!_reasonsToHide.Any((pair) => pair.Value));
         }
 
-        private void SetVisibility(bool visible, bool force = false)
+        private void SetVisibility(bool visible, bool shouldTween = true, bool force = false)
         {
             if (_isVisible == visible && !force)
             {
                 return;
             }
 
-            // tween fade the crosshair in/out
             var toColor = new Color(_color.r, _color.g, _color.b, visible ? _color.a : 0);
-            _crosshairImage.TweenColor(toColor, _fadeInOutTime);
+            if (shouldTween)
+            {
+                // tween fade the crosshair in/out
+                _crosshairImage.TweenColor(toColor, _fadeInOutTime).OnComplete(() => _laggingVisible = visible);
+            }
+            else
+            {
+                _crosshairImage.color = toColor;
+                _laggingVisible = visible;
+            }
+
             _isVisible = visible;
+
+            // immediately calculate dynamic position with no tween
+            if (_isVisible && _useDynamicPosition)
+            {
+                CalculateDynamicAimPoint(shouldTween: false);
+            }
         }
 
-        private void CalculateDynamicAimPoint()
+        private void CalculateDynamicAimPoint(bool shouldTween = true)
         {
             if (_cachedPlayer == null)
             {
@@ -233,7 +249,14 @@ namespace SimpleCrosshair
             var screenAimPoint = GetCanvasScreenPosition(worldAimPoint);
 
             // move the anchor position of the cursor to the aim point
-            _crosshairImage.GetRectTransform().DOAnchorPos(screenAimPoint + _offset, _dynamicPositionSmoothTime);
+            if (shouldTween)
+            {
+                _crosshairImage.GetRectTransform().DOAnchorPos(screenAimPoint + _offset, _dynamicPositionSmoothTime);
+            }
+            else
+            {
+                _crosshairImage.GetRectTransform().anchoredPosition = screenAimPoint + _offset;
+            }
         }
 
         private void ResetToStaticAimPoint()

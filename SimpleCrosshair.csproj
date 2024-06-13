@@ -108,23 +108,24 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <OutputDLL Include="$(ProjectDir)$(OutDir)$(TargetName).dll" />
+      <License Include="$(ProjectDir)LICENSE.txt" />
       <Resources Include="$(ProjectDir)Resources\*" />
     </ItemGroup>
 
     <!-- Copies the output and resources to tarkov game folder -->
     <Copy
-      SourceFiles="@(OutputDLL);@(Resources)"
+      SourceFiles="@(OutputDLL);@(Resources);@(License)"
       DestinationFolder="$(TarkovDir)BepInEx\plugins\SimpleCrosshair"
     />
     <Copy
-      SourceFiles="@(OutputDLL);@(Resources)"
+      SourceFiles="@(OutputDLL);@(Resources);@(License)"
       DestinationFolder="$(TarkovDebugDir)BepInEx\plugins\SimpleCrosshair"
     />
 
     <!-- Creates a release zip file -->
     <RemoveDir Directories="$(ProjectDir)release" />
     <Copy
-      SourceFiles="@(OutputDLL);@(Resources)"
+      SourceFiles="@(OutputDLL);@(Resources);@(License)"
       DestinationFolder="$(ProjectDir)release\SimpleCrosshair\BepInEx\plugins\SimpleCrosshair"
     />
     <ZipDirectory

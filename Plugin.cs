@@ -38,7 +38,7 @@ namespace SimpleCrosshair
         /// <summary>
         /// Attach the crosshair to the battle ui screen
         /// </summary>
-        internal void TryAttachToBattleUIScreen(BattleUIScreen screen)
+        internal void TryAttachToBattleUIScreen(EftBattleUIScreen screen)
         {
             // if the screen already has the component, don't add it
             if (screen.GetComponentInChildren<SimpleCrosshairComponent>() != null)

@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using Aki.Reflection.Patching;
+using SPT.Reflection.Patching;
 using EFT;
 using EFT.UI;
 using HarmonyLib;
@@ -11,13 +11,13 @@ namespace SimpleCrosshair.Patches
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(BattleUIScreen),
-                                      nameof(BattleUIScreen.Show),
+            return AccessTools.Method(typeof(EftBattleUIScreen),
+                                      nameof(EftBattleUIScreen.Show),
                                       new Type[] { typeof(GamePlayerOwner) });
         }
 
         [PatchPostfix]
-        public static void PatchPostfix(BattleUIScreen __instance)
+        public static void PatchPostfix(EftBattleUIScreen __instance)
         {
             Plugin.Instance.TryAttachToBattleUIScreen(__instance);
         }

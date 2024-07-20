@@ -70,7 +70,7 @@ namespace SimpleCrosshair
         private Canvas _cachedCanvas;
         private Camera _cachedCamera;
 
-        public static SimpleCrosshairComponent AttachToBattleUIScreen(BattleUIScreen screen)
+        public static SimpleCrosshairComponent AttachToBattleUIScreen(EftBattleUIScreen screen)
         {
             // setup container
             var containerGO = new GameObject("SimpleCrosshair", typeof(RectTransform), typeof(CanvasRenderer));

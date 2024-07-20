@@ -1,7 +1,7 @@
 using System.Reflection;
-using Aki.Reflection.Patching;
 using EFT.UI.Gestures;
 using HarmonyLib;
+using SPT.Reflection.Patching;
 
 namespace SimpleCrosshair.Patches
 {

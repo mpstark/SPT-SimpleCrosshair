@@ -70,7 +70,7 @@ namespace SimpleCrosshair
         private Canvas _cachedCanvas;
         private Camera _cachedCamera;
 
-        public static SimpleCrosshairComponent AttachToBattleUIScreen(BattleUIScreen screen)
+        public static SimpleCrosshairComponent AttachToBattleUIScreen(EftBattleUIScreen screen)
         {
             // setup container
             var containerGO = new GameObject("SimpleCrosshair", typeof(RectTransform), typeof(CanvasRenderer));
@@ -302,7 +302,7 @@ namespace SimpleCrosshair
 
         private Vector2 GetCanvasScreenPosition(Vector3 worldPoint)
         {
-            var canvasRect = _cachedCanvas.GetRectTransform();
+            var canvasRect = _cachedCanvas.GetRectTransform().parent.GetRectTransform(); // Workaround to get a valid sizeDelta
             var viewportPoint = _cachedCamera.WorldToViewportPoint(worldPoint);
             return new Vector2(
                 (viewportPoint.x * canvasRect.sizeDelta.x) - (canvasRect.sizeDelta.x * 0.5f),

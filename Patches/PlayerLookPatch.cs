@@ -20,7 +20,7 @@ namespace SimpleCrosshair.Patches
                 return;
             }
 
-            Plugin.Instance.SimpleCrosshair?.SetReasonToHide("looking", __instance.MouseLookControl);
+            Plugin.Instance.SimpleCrosshairComponent?.SetReasonToHide("looking", __instance.MouseLookControl);
         }
     }
 }

@@ -70,21 +70,21 @@ namespace SimpleCrosshair
         private Canvas _cachedCanvas;
         private Camera _cachedCamera;
 
-        public static SimpleCrosshairComponent AttachToBattleUIScreen(EftBattleUIScreen screen)
+        public static GameObject AttachToBattleUIScreen(EftBattleUIScreen screen)
         {
             // setup container
-            var containerGO = new GameObject("SimpleCrosshair", typeof(RectTransform), typeof(CanvasRenderer));
-            containerGO.layer = screen.gameObject.layer;
-            containerGO.transform.SetParent(screen.transform);
-            containerGO.transform.localScale = Vector3.one;
-            containerGO.GetRectTransform().anchoredPosition = Vector2.zero;
-            containerGO.GetRectTransform().pivot = new Vector2(0.5f, 0.5f);
-            containerGO.GetRectTransform().anchorMin = new Vector2(0.5f, 0.5f);
-            containerGO.GetRectTransform().anchorMax = new Vector2(0.5f, 0.5f);
+            var go = new GameObject("SimpleCrosshair", typeof(RectTransform), typeof(CanvasRenderer));
+            go.layer = screen.gameObject.layer;
+            go.transform.SetParent(screen.transform);
+            go.transform.localScale = Vector3.one;
+            go.GetRectTransform().anchoredPosition = Vector2.zero;
+            go.GetRectTransform().pivot = new Vector2(0.5f, 0.5f);
+            go.GetRectTransform().anchorMin = new Vector2(0.5f, 0.5f);
+            go.GetRectTransform().anchorMax = new Vector2(0.5f, 0.5f);
 
             // add our component
-            var component = containerGO.AddComponent<SimpleCrosshairComponent>();
-            return component;
+            var component = go.AddComponent<SimpleCrosshairComponent>();
+            return go;
         }
 
         private void Awake()

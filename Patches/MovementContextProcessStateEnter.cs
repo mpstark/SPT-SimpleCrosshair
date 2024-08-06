@@ -20,7 +20,7 @@ namespace SimpleCrosshair.Patches
                 return;
             }
 
-            Plugin.Instance.SimpleCrosshair?.OnMovementStateChanged(__instance.CurrentState.Name);
+            Plugin.Instance.SimpleCrosshairComponent?.OnMovementStateChanged(__instance.CurrentState.Name);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace SimpleCrosshair.Patches
                 return;
             }
 
-            Plugin.Instance.SimpleCrosshair?.OnRegisterMainPlayer();
+            Plugin.Instance.SimpleCrosshairComponent?.OnRegisterMainPlayer();
         }
     }
 
@@ -39,7 +39,7 @@ namespace SimpleCrosshair.Patches
                 return;
             }
 
-            Plugin.Instance.SimpleCrosshair?.OnUnregisterMainPlayer();
+            Plugin.Instance.SimpleCrosshairComponent?.OnUnregisterMainPlayer();
             Plugin.Instance.DestroyCrosshair();
         }
     }

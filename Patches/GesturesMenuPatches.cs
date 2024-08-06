@@ -15,7 +15,7 @@ namespace SimpleCrosshair.Patches
         [PatchPostfix]
         public static void PatchPostfix()
         {
-            Plugin.Instance.SimpleCrosshair?.SetReasonToHide("gestureMenuOpen", true);
+            Plugin.Instance.SimpleCrosshairComponent?.SetReasonToHide("gestureMenuOpen", true);
         }
     }
 
@@ -29,7 +29,7 @@ namespace SimpleCrosshair.Patches
         [PatchPostfix]
         public static void PatchPostfix()
         {
-            Plugin.Instance.SimpleCrosshair?.SetReasonToHide("gestureMenuOpen", false);
+            Plugin.Instance.SimpleCrosshairComponent?.SetReasonToHide("gestureMenuOpen", false);
         }
     }
 }

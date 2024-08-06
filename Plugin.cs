@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using EFT.UI;
 using SimpleCrosshair.Config;
 using SimpleCrosshair.Patches;
+using UnityEngine;
 
 namespace SimpleCrosshair
 {
@@ -15,12 +16,13 @@ namespace SimpleCrosshair
         public static ManualLogSource Log => Instance.Logger;
         public static string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        public SimpleCrosshairComponent SimpleCrosshair { get; private set; }
+        public GameObject SimpleCrosshairGO { get; private set; }
+        public SimpleCrosshairComponent SimpleCrosshairComponent { get; private set; }
 
         internal void Awake()
         {
             Settings.Init(Config);
-            Config.SettingChanged += (x, y) => SimpleCrosshair?.ReadConfig();
+            Config.SettingChanged += (x, y) => SimpleCrosshairComponent?.ReadConfig();
 
             Instance = this;
             DontDestroyOnLoad(this);
@@ -46,13 +48,14 @@ namespace SimpleCrosshair
                 return;
             }
 
-            if (SimpleCrosshair != null)
+            if (SimpleCrosshairGO != null)
             {
                 Log.LogWarning($"Attaching new SimpleCrosshairComponent, but one already existed? Maybe old reference.");
                 DestroyCrosshair();
             }
 
-            SimpleCrosshair = SimpleCrosshairComponent.AttachToBattleUIScreen(screen);
+            SimpleCrosshairGO = SimpleCrosshairComponent.AttachToBattleUIScreen(screen);
+            SimpleCrosshairComponent = SimpleCrosshairGO.GetComponent<SimpleCrosshairComponent>();
         }
 
         /// <summary>
@@ -60,8 +63,10 @@ namespace SimpleCrosshair
         /// </summary>
         internal void DestroyCrosshair()
         {
-            Destroy(SimpleCrosshair);
-            SimpleCrosshair = null;
+            Destroy(SimpleCrosshairGO);
+
+            SimpleCrosshairGO = null;
+            SimpleCrosshairComponent = null;
         }
     }
 }
